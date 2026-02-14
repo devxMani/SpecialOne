@@ -24,7 +24,7 @@ export async function saveLetter(content: string[], theme: string) {
   
   if (error) {
     console.error('Error saving letter:', error)
-    throw new Error(error.message || 'Failed to save letter')
+    return null
   }
   return data
 }

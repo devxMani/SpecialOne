@@ -436,26 +436,20 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                   >
                     <button
                         onClick={handleSave}
-                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' 
-                            ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
-                            : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
-                        } px-6 py-3`}
-                        style={{ fontFamily: "'Courier New', monospace" }}
+                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' ? 'text-pink-600 border-pink-200 bg-pink-50' : 'text-gray-600 border-gray-200 bg-gray-50'
+                        } px-6 py-2 border rounded-full shadow-sm`}
                     >
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                         Save Letter
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                         Save
                     </button>
                      <button
                         onClick={handleExport}
-                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' 
-                            ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
-                            : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
-                        } px-6 py-3`}
-                        style={{ fontFamily: "'Courier New', monospace" }}
+                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' ? 'text-pink-600 border-pink-200 bg-pink-50' : 'text-gray-600 border-gray-200 bg-gray-50'
+                        } px-6 py-2 border rounded-full shadow-sm`}
                     >
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                          Export PDF
                     </button>
                      <button
@@ -466,14 +460,11 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                             setCharIndex(0);
                             setCarriageOffset(0);
                         }}
-                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' 
-                            ? 'text-pink-400 hover:text-pink-600 border-2 border-pink-100 bg-white hover:bg-pink-50 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.2)]' 
-                            : 'text-amber-700 hover:text-amber-900 border-2 border-amber-900/20 bg-white hover:bg-amber-50 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.2)]'
-                        } px-6 py-3`}
-                        style={{ fontFamily: "'Courier New', monospace" }}
+                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' ? 'text-gray-400' : 'text-gray-400'
+                        } px-6 py-2 border-transparent hover:text-gray-600`}
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                         Write Another
                     </button>
                  </motion.div>
