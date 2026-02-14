@@ -90,6 +90,25 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            {/* Archival Letters Button */}
+            <div className="space-y-2">
+              <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Archives</h3>
+              <button
+                onClick={handleOpenLetters}
+                className={`w-full px-4 py-3 text-sm font-bold tracking-wider uppercase transition-all hover:scale-[1.02] active:scale-95 ${
+                  theme === 'love' 
+                    ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
+                    : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
+                }`}
+                style={{ fontFamily: "'Courier New', monospace" }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <List size={16} />
+                  Archival Letters
+                </div>
+              </button>
+            </div>
           </div>
         </div>
         

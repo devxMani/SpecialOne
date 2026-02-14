@@ -267,10 +267,36 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
     }
   };
 
+  const RetroButton = ({ onClick, children, className = '', color = '#78350f', shadow = '#451a03', icon: Icon, disabled = false }: any) => (
+    <button
+      onClick={disabled ? undefined : onClick}
+      className={`relative group px-6 py-3 font-bold uppercase tracking-widest text-sm transition-all duration-75 active:translate-y-1 ${className}`}
+      style={{ 
+        fontFamily: "'Courier New', monospace",
+        color: 'white',
+        opacity: disabled ? 0.6 : 1,
+        pointerEvents: disabled ? 'none' : 'auto'
+      }}
+    >
+      <span 
+        className="absolute inset-0 rounded-md transition-transform" 
+        style={{ backgroundColor: shadow, transform: 'translateY(4px)' }} 
+      />
+      <span 
+        className="absolute inset-0 rounded-md border-2 border-black/10 group-active:translate-y-1 transition-transform" 
+        style={{ backgroundColor: color }} 
+      />
+      <span className="relative flex items-center gap-2 justify-center group-active:translate-y-1 transition-transform">
+        {Icon && <Icon size={18} strokeWidth={2.5} />}
+        {children}
+      </span>
+    </button>
+  );
+
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-end overflow-hidden transition-colors duration-500 ${currentStyle.bg}`}>
       
-      {/* Paper Surface - Wrapped in a container for correct layering */}
+      {/* Paper Surface */}
       <div className={`absolute inset-0 flex items-center justify-center overflow-hidden z-0 ${isFinished ? 'z-[40]' : 'pointer-events-none'}`}>
         <motion.div 
           animate={isFinished ? {
@@ -282,13 +308,13 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
           } : { 
             x: carriageOffset,
             rotate: isShaking ? [0, -0.2, 0.2, 0] : 0,
-            y: -currentLineIndex * 28 // Updated to match line-height (28px)
+            y: -currentLineIndex * 28 
           }}
           transition={isFinished ? { duration: 1.5, ease: "easeInOut" } : (isReturning ? { type: "spring", stiffness: 100, damping: 20 } : { type: "tween", duration: 0.1 })}
           className="relative pointer-events-auto"
           style={{
             height: '1000px',
-            top: isFinished ? '5%' : '10%' // Lower when typing to show controls
+            top: isFinished ? '5%' : '15%'
           }}
         >
           <div 
@@ -299,7 +325,7 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                 width: '600px'
             }}
           >
-            {/* Paper Header (UI Controls) - Hidden when finished */}
+            {/* Paper Header (UI Controls) */}
              <AnimatePresence>
               {!isFinished && (
                 <motion.div 
@@ -317,7 +343,6 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                   </button>
                   
                   <div className="flex gap-2">
-                     {/* Ink Color Selector */}
                     <div className="flex gap-1">
                       {['black', 'red', 'blue', 'green'].map((c: any) => (
                         <button
@@ -334,7 +359,7 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
               )}
             </AnimatePresence>
 
-            {/* Finished Header (Date) - HIGHLY VISIBLE */}
+            {/* Date Header */}
             <AnimatePresence>
               {isFinished && (
                 <motion.div 
@@ -364,7 +389,7 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                   {line.split('').map((char, j) => (
                     <motion.span
                       key={`${i}-${j}`}
-                      initial={{ opacity: 0, scale: 2, y: 5, filter: 'blur(2px)' }}
+                      initial={isFinished ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 2, y: 5, filter: 'blur(2px)' }}
                       animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{ 
                         type: "spring", 
@@ -393,7 +418,7 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
               <div ref={paperEndRef} />
             </div>
 
-            {/* Footer / Signature */}
+            {/* Footer / Signature Area */}
             <AnimatePresence>
                {isFinished && (
                 <motion.div
@@ -418,126 +443,114 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
                )}
             </AnimatePresence>
             
-            {/* Love theme decorations */}
-            {theme === 'love' && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] text-pink-500">
-                <svg width="400" height="400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              </div>
-            )}
-            
-            {/* Controls to Restart / Save */}
+            {/* Action Buttons on Paper */}
             <AnimatePresence>
               {isFinished && (
                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 2.5 }}
-                     className="mt-8 flex gap-4 justify-center pointer-events-auto"
+                    className="mt-12 flex gap-4 justify-center pointer-events-auto"
                   >
-                    <button
-                        onClick={handleSave}
-                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' ? 'text-pink-600 border-pink-200 bg-pink-50' : 'text-gray-600 border-gray-200 bg-gray-50'
-                        } px-6 py-2 border rounded-full shadow-sm`}
+                    <RetroButton
+                      onClick={handleSave}
+                      color={theme === 'love' ? '#ff4d6d' : '#78350f'}
+                      shadow={theme === 'love' ? '#c9184a' : '#451a03'}
+                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>}
                     >
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                         Save
-                    </button>
-                     <button
-                        onClick={handleExport}
-                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' ? 'text-pink-600 border-pink-200 bg-pink-50' : 'text-gray-600 border-gray-200 bg-gray-50'
-                        } px-6 py-2 border rounded-full shadow-sm`}
+                      Save Letter
+                    </RetroButton>
+
+                    <RetroButton
+                      onClick={handleExport}
+                      color={theme === 'love' ? '#ff4d6d' : '#78350f'}
+                      shadow={theme === 'love' ? '#c9184a' : '#451a03'}
+                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>}
                     >
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                         Export PDF
-                    </button>
-                     <button
-                        onClick={() => {
-                            setIsFinished(false);
-                            setLines(['']);
-                            setCurrentLineIndex(0);
-                            setCharIndex(0);
-                            setCarriageOffset(0);
-                        }}
-                        className={`flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
-                          theme === 'love' ? 'text-gray-400' : 'text-gray-400'
-                        } px-6 py-2 border-transparent hover:text-gray-600`}
+                      Export PDF
+                    </RetroButton>
+
+                    <RetroButton
+                      onClick={() => {
+                        setIsFinished(false);
+                        setLines(['']);
+                        setCurrentLineIndex(0);
+                        setCharIndex(0);
+                        setCarriageOffset(0);
+                      }}
+                      color={theme === 'love' ? '#f472b6' : '#92400e'}
+                      shadow={theme === 'love' ? '#db2777' : '#78350f'}
+                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>}
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                        Write Another
-                    </button>
+                      Write New
+                    </RetroButton>
                  </motion.div>
               )}
             </AnimatePresence>
-
           </div>
         </motion.div>
       </div>
 
-      {/* Typewriter Carriage (Behind Base) */}
-      <motion.div
-        drag={!isFinished ? "x" : false} // Disable drag when finished
-        dragConstraints={{ left: -300, right: 300 }}
-        dragElastic={0.1}
-        onDragEnd={onDragEnd}
-        animate={{ 
-          x: carriageOffset,
-          y: isFinished ? 500 : (isShaking ? [0, -1, 1, 0] : 0), // Move down when finished
-        }}
-        transition={isFinished ? { duration: 1, ease: 'easeInOut' } : (isReturning ? { type: "spring", stiffness: 100, damping: 20 } : { type: "tween", duration: 0.1 })}
-        className="absolute bottom-[-80px] cursor-grab active:cursor-grabbing z-10"
-        style={{ width: '500px' }}
-      >
-        <div className="relative">
+      {/* Typewriter Body (Carriage & Base) */}
+      <div className="relative w-[650px] flex items-center justify-center pointer-events-none mb-[-50px]">
+        {/* Carriage (Moves) */}
+        <motion.div
+           drag={!isFinished ? "x" : false}
+           dragConstraints={{ left: -300, right: 300 }}
+           dragElastic={0.1}
+           onDragEnd={onDragEnd}
+           animate={{ 
+             x: carriageOffset,
+             y: isFinished ? 500 : (isShaking ? [0, -1, 1, 0] : 0),
+           }}
+           transition={isFinished ? { duration: 1, ease: 'easeInOut' } : (isReturning ? { type: "spring", stiffness: 100, damping: 20 } : { type: "tween", duration: 0.1 })}
+           className="absolute z-10 w-[500px] pointer-events-auto cursor-grab active:cursor-grabbing"
+           style={{ top: '-100px' }}
+        >
           <ImageWithFallback 
             src={carriageImg} 
             alt="Carriage" 
-            className={`w-full h-auto select-none pointer-events-none transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : (theme === 'vintage' ? 'sepia-[.3] brightness-90' : '')}`}
+            className={`w-full h-auto transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : (theme === 'vintage' ? 'sepia-[.3] brightness-90' : '')}`}
           />
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* The carriage bar area where paper appears to slide through */}
-            <div className="w-[450px] h-[10px] bg-black/5 rounded-full blur-[1px]" style={{ transform: 'translateY(-15px)' }} />
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Typewriter Base (Front Layer) */}
-      <motion.div 
-        animate={{ y: isFinished ? 600 : 150 }}
-        transition={{ duration: 1, ease: 'easeInOut' }}
-        className="relative w-[650px] z-20 pointer-events-none" 
-      >
-        <ImageWithFallback 
-          src={baseImg} 
-          alt="Typewriter Base" 
-          className={`w-full h-auto select-none transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : ''}`}
-        />
-        
-        {/* Key Press Visual Feedback */}
-        <AnimatePresence>
-          {activeKey && !isFinished && (
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 10 }}
-              animate={{ scale: 1.1, opacity: 0.4, y: 0 }}
-              exit={{ scale: 1.5, opacity: 0, y: -20 }}
-              className="absolute bg-white rounded-full w-10 h-10 flex items-center justify-center text-black shadow-xl"
-              style={{
-                left: '50%',
-                top: '65%',
-                transform: 'translateX(-50%)',
-                border: '1px solid rgba(0,0,0,0.1)'
-              }}
-            >
-              <span className="text-lg font-bold uppercase">{activeKey}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+        {/* Base (Static Y) */}
+        <motion.div 
+          animate={{ y: isFinished ? 600 : 0 }}
+          transition={{ duration: 1, ease: 'easeInOut' }}
+          className="relative z-20 w-full" 
+        >
+          <ImageWithFallback 
+            src={baseImg} 
+            alt="Typewriter Base" 
+            className={`w-full h-auto transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : ''}`}
+          />
+          
+          <AnimatePresence>
+            {activeKey && !isFinished && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                animate={{ scale: 1.1, opacity: 0.4, y: 0 }}
+                exit={{ scale: 1.5, opacity: 0, y: -20 }}
+                className="absolute bg-white rounded-full w-10 h-10 flex items-center justify-center text-black shadow-xl"
+                style={{
+                  left: '50%',
+                  top: '65%',
+                  transform: 'translateX(-50%)',
+                  border: '1px solid rgba(0,0,0,0.1)'
+                }}
+              >
+                <span className="text-lg font-bold uppercase">{activeKey}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
 
-      {/* Bottom masking gradient to ground the typewriter */}
       <div className="absolute bottom-0 w-full h-[150px] bg-gradient-to-t from-white/20 to-transparent z-30 pointer-events-none" />
     </div>
+  );
+}
   );
 }
 
