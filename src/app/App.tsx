@@ -5,7 +5,9 @@ import { SnapshotPreviews } from './components/SnapshotPreviews';
 import { Toaster } from 'sonner';
 import { motion } from 'motion/react';
 
-import { Heart, Coffee } from 'lucide-react';
+import { Heart, Coffee, List } from 'lucide-react';
+import { AllLettersModal } from './components/AllLettersModal';
+import { getLetters, type Letter } from '../lib/supabase';
 import type { Theme } from '../types';
 
 interface Snapshot {
@@ -17,6 +19,8 @@ interface Snapshot {
 export default function App() {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLettersModalOpen, setIsLettersModalOpen] = useState(false);
+  const [savedLetters, setSavedLetters] = useState<Letter[]>([]);
   const [inkColor, setInkColor] = useState<'black' | 'red' | 'blue' | 'green'>('black');
   const [theme, setTheme] = useState<Theme>('love');
 
@@ -34,6 +38,12 @@ export default function App() {
     { id: 'love', label: 'Love', icon: <Heart size={14} /> },
     { id: 'vintage', label: 'Vintage', icon: <Coffee size={14} /> },
   ];
+
+  const handleOpenLetters = async () => {
+    const letters = await getLetters();
+    setSavedLetters(letters);
+    setIsLettersModalOpen(true);
+  };
 
   return (
     <div className={`min-h-screen flex flex-col md:flex-row overflow-hidden selection:bg-pink-100 transition-colors duration-500 ${theme === 'love' ? 'bg-[#fff5f5] text-[#590d22]' : 'bg-[#f8f9fa] text-gray-900'}`}>
@@ -60,6 +70,7 @@ export default function App() {
           </div>
           
           <div className="space-y-4">
+            {/* Theme selection */}
             <div className="space-y-2">
               <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Select Vibe</h3>
               <div className="flex flex-wrap gap-2">
@@ -81,11 +92,28 @@ export default function App() {
               </div>
             </div>
 
-            <div className="pt-4">
-              <SnapshotPreviews onOpenModal={() => setIsModalOpen(true)} />
+            {/* Archival Letters Button */}
+            <div className="space-y-2">
+              <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Archives</h3>
+              <button
+                onClick={handleOpenLetters}
+                className={`w-full px-4 py-3 text-sm font-bold tracking-wider uppercase transition-all hover:scale-[1.02] active:scale-95 ${
+                  theme === 'love' 
+                    ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
+                    : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
+                }`}
+                style={{ fontFamily: "'Courier New', monospace" }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <List size={16} />
+                  Archival Letters
+                </div>
+              </button>
             </div>
           </div>
         </div>
+        
+        <SnapshotPreviews onOpenModal={() => setIsModalOpen(true)} />
       </div>
 
       {/* Right Column: Interactive Typewriter */}
@@ -103,6 +131,13 @@ export default function App() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         snapshots={snapshots}
+      />
+      
+      {/* Archival Letters Modal */}
+      <AllLettersModal
+        isOpen={isLettersModalOpen}
+        onClose={() => setIsLettersModalOpen(false)}
+        letters={savedLetters}
       />
     </div>
   );

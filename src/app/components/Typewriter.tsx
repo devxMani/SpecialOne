@@ -47,7 +47,7 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
     vintage: { 
       bg: 'bg-[#f4f1e8]', 
       paper: 'bg-[#faf8f3] sepia-[.3]', 
-      text: inkColor === 'black' ? 'text-[#2b2b2b]' : (inkColor === 'red' ? 'text-[#8b0000]' : (inkColor === 'blue' ? 'text-[#003366]' : 'text-[#2d5016]')),
+      text: inkColor === 'black' ? 'text-[#2b2b2b]' : (inkColor === 'red' ? 'text-[#8b0000]' : (inkColor === 'blue' ? 'text-[#003366]' : (inkColor === 'green' ? 'text-[#2d5016]' : 'text-[#2b2b2b]'))),
       accent: 'border-amber-900/20',
       font: 'font-serif'
     }
