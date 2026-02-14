@@ -1,21 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-
-// Assets - using relative paths to avoid TS issues
-import baseImg from "../../assets/ed4da5391f8db1233917f716a54b2e30b60587f3.png";
-import carriageImg from "../../assets/8f731afeb73b75596b261be307531e13e24b484c.png";
-
-import { saveLetter } from '../../lib/supabase';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+import { saveLetter } from '../../lib/supabase';
+import carriageImg from "../../assets/ed4da5391f8db1233917f716a54b2e30b60587f3.png";
+import baseImg from "../../assets/8f731afeb73b75596b261be307531e13e24b484c.png";
 
 type Theme = 'love' | 'vintage';
 
 interface TypewriterProps {
   onSnapshot: (lines: string[]) => void;
-  onSaveSuccess?: () => void;
   inkColor: 'black' | 'red' | 'blue' | 'green';
   setInkColor: (color: 'black' | 'red' | 'blue' | 'green') => void;
   theme: Theme;
@@ -24,7 +20,7 @@ interface TypewriterProps {
 const MAX_CHARS_PER_LINE = 48;
 const CHAR_WIDTH = 11;
 
-export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, theme }: TypewriterProps) {
+export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: TypewriterProps) {
   const [lines, setLines] = useState<string[]>(['']);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -33,33 +29,28 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const paperEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to keep typing in view
   useEffect(() => {
-    if (paperEndRef.current && !isFinished) {
+    if (paperEndRef.current) {
       paperEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [lines, currentLineIndex, isFinished]);
+  }, [lines, currentLineIndex]);
 
   const themeStyles = {
     love: { 
       bg: 'bg-[#fff0f3]', 
       paper: 'bg-[#fffbfc]', 
       text: inkColor === 'black' ? 'text-[#a4133c]' : (inkColor === 'red' ? 'text-[#c9184a]' : (inkColor === 'blue' ? 'text-[#7209b7]' : 'text-[#2d6a4f]')),
-      accent: 'border-pink-100',
-      btnColor: '#ff4d6d',
-      btnShadow: '#c9184a'
+      accent: 'border-pink-100'
     },
     vintage: { 
       bg: 'bg-[#f4f1e8]', 
       paper: 'bg-[#faf8f3] sepia-[.3]', 
       text: inkColor === 'black' ? 'text-[#2b2b2b]' : (inkColor === 'red' ? 'text-[#8b0000]' : (inkColor === 'blue' ? 'text-[#003366]' : 'text-[#2d5016]')),
       accent: 'border-amber-900/20',
-      font: 'font-serif',
-      btnColor: '#78350f',
-      btnShadow: '#451a03'
+      font: 'font-serif'
     }
   };
 
@@ -82,7 +73,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
     try {
       const audioContext = initAudio();
       const master = audioContext.createGain();
-      master.gain.setValueAtTime(0.3, audioContext.currentTime);
+      master.gain.setValueAtTime(0.3, audioContext.currentTime); // Increased volume slightly
       master.connect(audioContext.destination);
 
       const click = audioContext.createOscillator();
@@ -152,7 +143,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isFinished) return;
+      if (isFinished) return; // Disable typing when finished
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
       if (e.key === 'Enter') {
@@ -232,21 +223,16 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
 
   const handleFinish = () => {
     setIsFinished(true);
-    playReturn();
+    playReturn(); // Sound effect for final movement
     playSlide();
   };
 
   const handleSave = async () => {
-    try {
-      await toast.promise(saveLetter(lines, theme), {
-        loading: 'Archiving letter...',
-        success: 'Letter preserved in archives!',
-        error: 'Failed to archive letter.'
-      });
-      if (onSaveSuccess) onSaveSuccess();
-    } catch (error) {
-      console.error(error);
-    }
+    toast.promise(saveLetter(lines, theme), {
+      loading: 'Saving letter...',
+      success: 'Letter saved safely!',
+      error: 'Could not save letter.'
+    });
   };
 
   const handleExport = async () => {
@@ -257,34 +243,20 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
      }
      
      try {
-       setIsExporting(true);
-       toast.loading('Preparing manuscript...');
-       
-       await new Promise(resolve => setTimeout(resolve, 500));
-       
-       const canvas = await html2canvas(element, { 
-         scale: 3,
-         backgroundColor: theme === 'vintage' ? '#faf8f3' : '#fffbfc',
-         logging: false,
-         useCORS: true
-       });
-       
-       const imgData = canvas.toDataURL('image/jpeg', 1.0);
+       toast.loading('Generating PDF...');
+       const canvas = await html2canvas(element, { scale: 2 });
+       const imgData = canvas.toDataURL('image/png');
        const pdf = new jsPDF('p', 'mm', 'a4');
        const pdfWidth = pdf.internal.pageSize.getWidth();
        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-       
-       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
        pdf.save(`letter-${new Date().toISOString().split('T')[0]}.pdf`);
-       
        toast.dismiss();
-       toast.success('Manuscript exported!');
+       toast.success('PDF exported successfully!');
      } catch (error) {
        toast.dismiss();
-       toast.error('Export failed');
+       toast.error('Failed to export PDF: ' + (error as Error).message);
        console.error('Export error:', error);
-     } finally {
-       setIsExporting(false);
      }
   };
 
@@ -295,36 +267,10 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
     }
   };
 
-  const RetroButton = ({ onClick, children, className = '', color = '#78350f', shadow = '#451a03', icon: Icon, disabled = false }: any) => (
-    <button
-      onClick={disabled ? undefined : onClick}
-      className={`relative group px-6 py-3 font-bold uppercase tracking-widest text-sm transition-all duration-75 active:translate-y-1 ${className}`}
-      style={{ 
-        fontFamily: "'Courier New', monospace",
-        color: 'white',
-        opacity: disabled ? 0.6 : 1,
-        pointerEvents: disabled ? 'none' : 'auto'
-      }}
-    >
-      <span 
-        className="absolute inset-0 rounded-md transition-transform" 
-        style={{ backgroundColor: shadow, transform: 'translateY(4px)' }} 
-      />
-      <span 
-        className="absolute inset-0 rounded-md border-2 border-black/10 group-active:translate-y-1 transition-transform" 
-        style={{ backgroundColor: color }} 
-      />
-      <span className="relative flex items-center gap-2 justify-center group-active:translate-y-1 transition-transform">
-        {Icon && <Icon size={18} strokeWidth={2.5} />}
-        {children}
-      </span>
-    </button>
-  );
-
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-end overflow-hidden transition-colors duration-500 ${currentStyle.bg}`}>
       
-      {/* Paper Surface */}
+      {/* Paper Surface - Wrapped in a container for correct layering */}
       <div className={`absolute inset-0 flex items-center justify-center overflow-hidden z-0 ${isFinished ? 'z-[40]' : 'pointer-events-none'}`}>
         <motion.div 
           animate={isFinished ? {
@@ -336,13 +282,13 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
           } : { 
             x: carriageOffset,
             rotate: isShaking ? [0, -0.2, 0.2, 0] : 0,
-            y: -currentLineIndex * 28 
+            y: -currentLineIndex * 28 // Updated to match line-height (28px)
           }}
           transition={isFinished ? { duration: 1.5, ease: "easeInOut" } : (isReturning ? { type: "spring", stiffness: 100, damping: 20 } : { type: "tween", duration: 0.1 })}
           className="relative pointer-events-auto"
           style={{
             height: '1000px',
-            top: isFinished ? '5%' : '10%'
+            top: isFinished ? '5%' : '10%' // Lower when typing to show controls
           }}
         >
           <div 
@@ -353,7 +299,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
                 width: '600px'
             }}
           >
-            {/* Paper Header (UI Controls) */}
+            {/* Paper Header (UI Controls) - Hidden when finished */}
              <AnimatePresence>
               {!isFinished && (
                 <motion.div 
@@ -371,6 +317,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
                   </button>
                   
                   <div className="flex gap-2">
+                     {/* Ink Color Selector */}
                     <div className="flex gap-1">
                       {['black', 'red', 'blue', 'green'].map((c: any) => (
                         <button
@@ -387,7 +334,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
               )}
             </AnimatePresence>
 
-            {/* Date Header */}
+            {/* Finished Header (Date) - HIGHLY VISIBLE */}
             <AnimatePresence>
               {isFinished && (
                 <motion.div 
@@ -417,7 +364,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
                   {line.split('').map((char, j) => (
                     <motion.span
                       key={`${i}-${j}`}
-                      initial={isFinished ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 2, y: 5, filter: 'blur(2px)' }}
+                      initial={{ opacity: 0, scale: 2, y: 5, filter: 'blur(2px)' }}
                       animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{ 
                         type: "spring", 
@@ -446,7 +393,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
               <div ref={paperEndRef} />
             </div>
 
-            {/* Signature Area */}
+            {/* Footer / Signature */}
             <AnimatePresence>
                {isFinished && (
                 <motion.div
@@ -471,63 +418,81 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
                )}
             </AnimatePresence>
             
-            {/* Action Buttons on Paper */}
+            {/* Love theme decorations */}
+            {theme === 'love' && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] text-pink-500">
+                <svg width="400" height="400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+            )}
+            
+            {/* Controls to Restart / Save */}
             <AnimatePresence>
-              {isFinished && !isExporting && (
+              {isFinished && (
                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 2.5 }}
-                    className="mt-12 flex gap-4 justify-center pointer-events-auto no-export"
+                     className="mt-8 flex gap-4 justify-center pointer-events-auto"
                   >
-                    <RetroButton
-                      onClick={handleSave}
-                      color={currentStyle.btnColor}
-                      shadow={currentStyle.btnShadow}
-                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>}
+                    <button
+                        onClick={handleSave}
+                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' 
+                            ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
+                            : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
+                        } px-6 py-3`}
+                        style={{ fontFamily: "'Courier New', monospace" }}
                     >
-                      Save Letter
-                    </RetroButton>
-
-                    <RetroButton
-                      onClick={handleExport}
-                      color={currentStyle.btnColor}
-                      shadow={currentStyle.btnShadow}
-                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>}
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                         Save Letter
+                    </button>
+                     <button
+                        onClick={handleExport}
+                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' 
+                            ? 'text-[#a4133c] hover:text-[#c9184a] border-2 border-pink-200 bg-pink-50 hover:bg-pink-100 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.4)]' 
+                            : 'text-amber-900 hover:text-amber-700 border-2 border-amber-900/30 bg-amber-50/50 hover:bg-amber-100 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.3)]'
+                        } px-6 py-3`}
+                        style={{ fontFamily: "'Courier New', monospace" }}
                     >
-                      Export PDF
-                    </RetroButton>
-
-                    <RetroButton
-                      onClick={() => {
-                        setIsFinished(false);
-                        setLines(['']);
-                        setCurrentLineIndex(0);
-                        setCharIndex(0);
-                        setCarriageOffset(0);
-                      }}
-                      color={theme === 'love' ? '#f472b6' : '#92400e'}
-                      shadow={theme === 'love' ? '#db2777' : '#78350f'}
-                      icon={() => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>}
+                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                         Export PDF
+                    </button>
+                     <button
+                        onClick={() => {
+                            setIsFinished(false);
+                            setLines(['']);
+                            setCurrentLineIndex(0);
+                            setCharIndex(0);
+                            setCarriageOffset(0);
+                        }}
+                        className={`flex items-center gap-2 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105 active:scale-95 ${
+                          theme === 'love' 
+                            ? 'text-pink-400 hover:text-pink-600 border-2 border-pink-100 bg-white hover:bg-pink-50 shadow-[3px_3px_0px_0px_rgba(244,114,182,0.2)]' 
+                            : 'text-amber-700 hover:text-amber-900 border-2 border-amber-900/20 bg-white hover:bg-amber-50 shadow-[3px_3px_0px_0px_rgba(120,53,15,0.2)]'
+                        } px-6 py-3`}
+                        style={{ fontFamily: "'Courier New', monospace" }}
                     >
-                      Write New
-                    </RetroButton>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Write Another
+                    </button>
                  </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </motion.div>
       </div>
 
-      {/* Typewriter Body */}
+      {/* Typewriter Carriage (Behind Base) */}
       <motion.div
-        drag={!isFinished ? "x" : false}
+        drag={!isFinished ? "x" : false} // Disable drag when finished
         dragConstraints={{ left: -300, right: 300 }}
         dragElastic={0.1}
         onDragEnd={onDragEnd}
         animate={{ 
           x: carriageOffset,
-          y: isFinished ? 500 : (isShaking ? [0, -1, 1, 0] : 0),
+          y: isFinished ? 500 : (isShaking ? [0, -1, 1, 0] : 0), // Move down when finished
         }}
         transition={isFinished ? { duration: 1, ease: 'easeInOut' } : (isReturning ? { type: "spring", stiffness: 100, damping: 20 } : { type: "tween", duration: 0.1 })}
         className="absolute bottom-[-80px] cursor-grab active:cursor-grabbing z-10"
@@ -537,11 +502,16 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
           <ImageWithFallback 
             src={carriageImg} 
             alt="Carriage" 
-            className={`w-full h-auto transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : (theme === 'vintage' ? 'sepia-[.3] brightness-90' : '')}`}
+            className={`w-full h-auto select-none pointer-events-none transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : (theme === 'vintage' ? 'sepia-[.3] brightness-90' : '')}`}
           />
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* The carriage bar area where paper appears to slide through */}
+            <div className="w-[450px] h-[10px] bg-black/5 rounded-full blur-[1px]" style={{ transform: 'translateY(-15px)' }} />
+          </div>
         </div>
       </motion.div>
 
+      {/* Typewriter Base (Front Layer) */}
       <motion.div 
         animate={{ y: isFinished ? 600 : 150 }}
         transition={{ duration: 1, ease: 'easeInOut' }}
@@ -550,9 +520,10 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
         <ImageWithFallback 
           src={baseImg} 
           alt="Typewriter Base" 
-          className={`w-full h-auto transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : ''}`}
+          className={`w-full h-auto select-none transition-all duration-500 ${theme === 'love' ? 'hue-rotate-[320deg] saturate-[1.1] brightness-105' : ''}`}
         />
         
+        {/* Key Press Visual Feedback */}
         <AnimatePresence>
           {activeKey && !isFinished && (
             <motion.div
@@ -573,6 +544,7 @@ export function Typewriter({ onSnapshot, onSaveSuccess, inkColor, setInkColor, t
         </AnimatePresence>
       </motion.div>
 
+      {/* Bottom masking gradient to ground the typewriter */}
       <div className="absolute bottom-0 w-full h-[150px] bg-gradient-to-t from-white/20 to-transparent z-30 pointer-events-none" />
     </div>
   );

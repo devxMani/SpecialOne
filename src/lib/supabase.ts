@@ -12,10 +12,6 @@ export type Letter = {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kkickfespkriivcgaqqk.supabase.co'
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8R8UT37NDS1v1lNOWmvaCA_33i0VmmT'
 
-if (!supabaseKey.startsWith('eyJ')) {
-  console.warn('Supabase: The anon key provided does not look like a standard Supabase JWT. Please check your .env file.');
-}
-
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function saveLetter(content: string[], theme: string) {
