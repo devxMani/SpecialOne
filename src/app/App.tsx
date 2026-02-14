@@ -5,7 +5,7 @@ import { SnapshotPreviews } from './components/SnapshotPreviews';
 import { Toaster } from 'sonner';
 import { motion } from 'motion/react';
 
-import { Heart, Coffee, Sun, Moon, Monitor, List, Sparkles } from 'lucide-react';
+import { Heart, Coffee, List } from 'lucide-react';
 import { AllLettersModal } from './components/AllLettersModal';
 import { getLetters, type Letter } from '../lib/supabase';
 import type { Theme } from '../types';
@@ -73,25 +73,27 @@ export default function App() {
             <div className="space-y-2">
               <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Select Vibe</h3>
               <div className="flex flex-wrap gap-2">
-              {themes.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t.id)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 border ${
-                    theme === t.id 
-                      ? (t.id === 'love' ? 'bg-pink-100 border-pink-200 text-pink-600' : 
-                        'bg-amber-100 border-amber-200 text-amber-800')
-                      : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                  }`}
-                  title={t.label}
-                >
-                  {t.icon}
-                </button>
-              ))}
+                {themes.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 border ${
+                      theme === t.id 
+                        ? (t.id === 'love' ? 'bg-pink-100 border-pink-200 text-pink-600' : 
+                          'bg-amber-100 border-amber-200 text-amber-800')
+                        : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                    }`}
+                    title={t.label}
+                  >
+                    {t.icon}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          </div>
-          
-          <SnapshotPreviews onOpenModal={() => setIsModalOpen(true)} />
+        </div>
+        
+        <SnapshotPreviews onOpenModal={() => setIsModalOpen(true)} />
       </div>
 
       {/* Right Column: Interactive Typewriter */}
@@ -104,13 +106,14 @@ export default function App() {
         />
       </div>
 
-      {/* Archival Modal */}
+      {/* Local Snapshots Modal */}
       <SnapshotModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         snapshots={snapshots}
       />
       
+      {/* Archival Letters Modal */}
       <AllLettersModal
         isOpen={isLettersModalOpen}
         onClose={() => setIsLettersModalOpen(false)}
