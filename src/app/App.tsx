@@ -24,6 +24,20 @@ export default function App() {
   const [inkColor, setInkColor] = useState<'black' | 'red' | 'blue' | 'green'>('black');
   const [theme, setTheme] = useState<Theme>('love');
 
+  // Fetch letters on load
+  const fetchLetters = async () => {
+    try {
+      const letters = await getLetters();
+      setSavedLetters(letters);
+    } catch (error) {
+      console.error('Failed to fetch letters:', error);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLetters();
+  }, []);
+
   const handleTakeSnapshot = (lines: string[]) => {
     const newSnapshot: Snapshot = {
       id: Math.random().toString(36).substr(2, 9),
@@ -40,14 +54,13 @@ export default function App() {
   ];
 
   const handleOpenLetters = async () => {
-    const letters = await getLetters();
-    setSavedLetters(letters);
+    await fetchLetters();
     setIsLettersModalOpen(true);
   };
 
   return (
     <div className={`min-h-screen flex flex-col md:flex-row overflow-hidden selection:bg-pink-100 transition-colors duration-500 ${theme === 'love' ? 'bg-[#fff5f5] text-[#590d22]' : 'bg-[#f8f9fa] text-gray-900'}`}>
-      <Toaster position="top-center" />
+      <Toaster position="top-center" richColors />
       
       {/* Left Column: Info & Previews */}
       <div className={`w-full md:w-[380px] p-12 flex flex-col justify-between h-screen z-30 transition-colors duration-500 border-r ${theme === 'love' ? 'bg-[#fff5f5] border-pink-100' : 'bg-white border-gray-100'}`}>
@@ -91,16 +104,36 @@ export default function App() {
           </div>
           </div>
           
+          {/* Archival Letters Button */}
+          <div className="space-y-2">
+            <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Archives</h3>
+            <button
+              onClick={handleOpenLetters}
+              className={`w-full px-4 py-3 text-sm font-bold tracking-wider uppercase transition-all hover:-translate-y-1 active:translate-y-0.5 ${
+                theme === 'love' 
+                  ? 'text-[#a4133c] border-2 border-[#ff4d6d] bg-white hover:bg-pink-50 shadow-[0_4px_0_0_#ff4d6d]' 
+                  : 'text-amber-900 border-2 border-amber-900/40 bg-white hover:bg-amber-50 shadow-[0_4px_0_0_rgba(120,53,15,0.4)]'
+              } rounded-md`}
+              style={{ fontFamily: "'Courier New', monospace" }}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <List size={16} />
+                Archival Letters
+              </div>
+            </button>
+          </div>
+          
           </div>
           </div>
           
-          <SnapshotPreviews onOpenModal={() => setIsModalOpen(true)} />
+          <SnapshotPreviews onOpenModal={handleOpenLetters} />
       </div>
 
       {/* Right Column: Interactive Typewriter */}
       <div className="flex-1 relative h-screen z-0">
         <Typewriter 
           onSnapshot={handleTakeSnapshot}
+          onSaveSuccess={fetchLetters}
           inkColor={inkColor}
           setInkColor={setInkColor}
           theme={theme}
