@@ -551,8 +551,6 @@ export function Typewriter({ onSnapshot, inkColor, setInkColor, theme }: Typewri
     </div>
   );
 }
-  );
-}
 
 function HeartIcon({ filled }: { filled?: boolean }) {
   return (
